@@ -16,6 +16,9 @@ BANNER_FILE = "MicrosoftFormTheme.jpg"
 SUBMISSIONS_DIR = "submissions"
 ATTACHMENTS_DIR = os.path.join(SUBMISSIONS_DIR, "attachments")
 
+# ✅ Excel export (single file updated every submission)
+EXCEL_EXPORT_FILE = os.path.join(SUBMISSIONS_DIR, "route_optimization_feedback.xlsx")
+
 # ✅ From screenshots (added)
 IDC_LIAISON_OPTIONS = [
     "I don't know",
@@ -99,6 +102,32 @@ def save_submission(payload: dict, uploaded_files: list) -> str:
         json.dump(payload, w, ensure_ascii=False, indent=2)
 
     return out_json
+
+
+def append_submission_to_excel(payload: dict, excel_path: str) -> None:
+    """
+    Append one submission (payload dict) to a single Excel file.
+    Creates the file if it doesn't exist. Keeps all columns that ever appeared.
+    """
+    os.makedirs(os.path.dirname(excel_path), exist_ok=True)
+
+    new_row = pd.DataFrame([payload])
+
+    if os.path.exists(excel_path):
+        try:
+            existing = pd.read_excel(excel_path)
+        except Exception:
+            existing = pd.DataFrame()
+
+        all_cols = list(dict.fromkeys(list(existing.columns) + list(new_row.columns)))
+        existing = existing.reindex(columns=all_cols)
+        new_row = new_row.reindex(columns=all_cols)
+
+        updated = pd.concat([existing, new_row], ignore_index=True)
+    else:
+        updated = new_row
+
+    updated.to_excel(excel_path, index=False)
 
 
 def is_digits_only(s: str) -> bool:
@@ -234,11 +263,9 @@ SUBCATS = {
 }
 
 def _on_main_issue_change():
-    # reset sub-category when main changes
     st.session_state["sub_issue"] = ""
 
 def _reset_form():
-    # Clear only known widget keys
     keys = [
         "driver_last_name", "driver_first_name", "driver_email_required",
         "idc_liaison", "idc_select", "idc_new",
@@ -368,7 +395,7 @@ with st.container():
     )
 
     # =========================
-    # ✅ 3) Issue identification (BACK IN PLACE + DYNAMIC)
+    # 3) Issue identification (dynamic)
     # =========================
     st.subheader("3) Issue identification")
 
@@ -377,7 +404,7 @@ with st.container():
         options=MAIN_ISSUE_CATEGORIES,
         index=0,
         key="main_issue",
-        on_change=_on_main_issue_change,   # ✅ THIS enables live reset
+        on_change=_on_main_issue_change,
     )
 
     available_subcats = SUBCATS.get(main_issue, [])
@@ -486,7 +513,7 @@ with st.container():
         if not time_lost:
             errors.append("Estimated time lost is required.")
 
-        # ✅ Validation (Issue identification)
+        # Validation (Issue identification)
         if not main_issue:
             errors.append("Main issue category is required.")
         if main_issue and not sub_issue:
@@ -530,10 +557,15 @@ with st.container():
             "suggestion": (suggestion or "").strip(),
         }
 
+        # ✅ Save JSON + attachments (existing behavior)
         out_path = save_submission(payload, attachments)
 
+        # ✅ Append to Excel (single file updated each submission)
+        append_submission_to_excel(payload, EXCEL_EXPORT_FILE)
+
         st.success("✅ Feedback submitted successfully!")
-        st.caption(f"Saved to: {out_path}")
+        st.caption(f"Saved JSON to: {out_path}")
+        st.caption(f"Appended to Excel: {EXCEL_EXPORT_FILE}")
         st.json(payload)
 
         # ✅ Clear everything like clear_on_submit=True
