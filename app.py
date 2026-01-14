@@ -204,7 +204,7 @@ st.markdown(
 <div class="card">
   <div class="title-banner" style="{banner_style}">
     <div class="title-overlay">
-      <h1 class="forms-title">Route Optimization Feedback</h1>
+      <h2 class="forms-title">Route Optimization Feedback</h2>
       <div class="forms-subtitle">Share your feedback with us</div>
     </div>
   </div>
@@ -418,17 +418,18 @@ with st.container():
         help="Select a main issue category first." if not main_issue else None,
     )
 
-    # =========================
-    # 4) Details
-    # =========================
-    st.subheader("4) Details")
-
     what_happened = st.text_area(
         "What happened? (optional)",
         placeholder="Describe what you observed.",
         height=110,
         key="what_happened",
     )
+    # =========================
+    # 4) Details
+    # =========================
+    st.subheader("4) Details")
+
+
 
     what_should = st.text_area(
         "What should have happened ideally? (optional)",
