@@ -273,7 +273,7 @@ def _reset_form():
         "route_number", "route_date",
         "vehicle_type",
         "issue_applies_to",
-        "stop_number", "stop_address",
+        "stop_number",
         "severity", "route_satisfaction",
         "time_lost", "parcel_tracking_id",
         "main_issue", "sub_issue",
@@ -355,13 +355,11 @@ with st.container():
     )
 
     stop_number = ""
-    stop_address = ""
+
     if issue_applies_to == "Specific stop":
         s1, s2 = st.columns(2)
         with s1:
             stop_number = st.text_input("Stop number *", placeholder="e.g., 12", key="stop_number")
-        with s2:
-            stop_address = st.text_input("Stop address *", placeholder="e.g., 123 Main St, City", key="stop_address")
 
     severity = st.radio(
         "Severity *",
@@ -479,7 +477,7 @@ with st.container():
         parcel_tracking_id_clean = (parcel_tracking_id or "").strip()
 
         stop_number_clean = (stop_number or "").strip()
-        stop_address_clean = (stop_address or "").strip()
+
 
         # Validation (Identification)
         if not driver_last_name_clean:
@@ -506,8 +504,7 @@ with st.container():
         if issue_applies_to == "Specific stop":
             if not stop_number_clean:
                 errors.append("Stop number is required when 'Specific stop' is selected.")
-            if not stop_address_clean:
-                errors.append("Stop address is required when 'Specific stop' is selected.")
+
             if not parcel_tracking_id_clean:
                 errors.append("Parcel Tracking ID is required when 'Specific stop' is selected.")
 
@@ -543,7 +540,7 @@ with st.container():
             # Problem scope
             "issue_applies_to": issue_applies_to,
             "stop_number": stop_number_clean if issue_applies_to == "Specific stop" else None,
-            "stop_address": stop_address_clean if issue_applies_to == "Specific stop" else None,
+
             "severity": severity,
             "route_satisfaction": route_satisfaction,
             "estimated_time_lost": time_lost,
