@@ -1,0 +1,4 @@
+import os
+
+APPLICATION_ID= "774c15c8-b0ae-4d4d-ab35-05479ce84c94"
+CLIENT_ID= ""
